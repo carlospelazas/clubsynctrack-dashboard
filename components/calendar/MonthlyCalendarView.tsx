@@ -1,5 +1,7 @@
 "use client";
 import { removeLeadingZero } from "@/lib/util/removeLeadingZero";
+import { calculateEndHour } from "@/lib/util/timeUtils";
+import { getColorHexadecimal } from "@/util/types/colors.enum";
 import { Event } from "@/util/types/event.types";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { FC, useState } from "react";
@@ -52,45 +54,54 @@ const MonthlyCalendarView: FC<MonthlyCalendarViewProps> = ({
       } else if (dayCounter <= daysInMonth) {
         week.push(
           <td key={dayCounter} className={`border p-4`}>
-            <div className={`flex items-start justify-center h-20`}>
-              <div className="flex flex-col items-center">
+            <div className={`flex items-start h-20 w-full`}>
+              <div className="flex flex-col items-center w-full">
                 <p
                   className={
                     isToday
-                      ? "bg-custom-blue-100 text-white font-bold px-[11px] py-1 rounded-full -translate-y-1 "
+                      ? "bg-custom-blue-100 text-white font-bold px-[7px] rounded-full -translate-y-1 "
                       : ""
                   }
                 >
                   {dayCounter}
                 </p>
-                <div className="flex flex-col items-stretch">
+                <div className="flex flex-col items-stretch h-16 truncate">
                   {events.map((event) => {
-                    let eventcounter = 0;
                     return event.dates.map((date) => {
                       //get day, month and year
                       const day = removeLeadingZero(date.date.split("-")[0]);
                       const month = removeLeadingZero(date.date.split("-")[1]);
                       const year = date.date.split("-")[2];
                       //compare it to current day
-                      console.log(
-                        dayCounter.toString(),
-                        day,
-                        (currentMonth + 1).toString(),
-                        month,
-                        currentYear.toString(),
-                        year
-                      );
                       if (
                         day === dayCounter.toString() &&
                         month === (currentMonth + 1).toString() &&
                         year === currentYear.toString()
                       ) {
-                        eventcounter++;
-                        console.log("AQUIAQUIAQUI");
+                        const startHour = event.startHour.slice(0, -3);
+                        const endHour = calculateEndHour(
+                          event.startHour,
+                          event.duration
+                        );
+                        const color = getColorHexadecimal(event.color);
                         return (
-                          <p key={date.id} className="font-semibold text-xs">
-                            {event.name}
-                          </p>
+                          <div
+                            key={date.id}
+                            className="flex flex-row items-center justify-start lg:space-x-2 space-x-1"
+                          >
+                            <div
+                              className="w-[12px] h-[12px] rounded-full"
+                              style={{ backgroundColor: color }}
+                            />
+                            <div className="flex flex-row items-center justify-start lg:space-x-2">
+                              <p className="text-[9px] line-clamp-1 hidden xl:block truncate">
+                                {startHour} - {endHour}
+                              </p>
+                              <p className="font-semibold text-[10px] truncate lg:w-20 w-12">
+                                {event.name}
+                              </p>
+                            </div>
+                          </div>
                         );
                       } else {
                         return null;
