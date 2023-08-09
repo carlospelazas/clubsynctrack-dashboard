@@ -64,10 +64,10 @@ const WeeklyView: React.FC<WeeklyViewProps> = ({ events, orgId }) => {
     const nextWeekDate = `${year}-${month}-${day}`;
     // hacer peticion por paginacion y añadir a activeSessions
     const { data } = await axios.get(
-      `/api/sessions/pagination?orgId=${orgId}&date=${nextWeekDate}`
+      `/api/sessions/pagination/week?orgId=${orgId}&date=${nextWeekDate}`
     );
-    console.log(data);
-    data.map((session: Event) => {
+    const { events } = data;
+    events.map((session: Event) => {
       if (
         !activeSessions.some((activeSession) => activeSession.id === session.id)
       ) {
@@ -87,11 +87,12 @@ const WeeklyView: React.FC<WeeklyViewProps> = ({ events, orgId }) => {
     const previousWeekDate = `${year}-${month}-${day}`;
     // hacer peticion por paginacion
     const { data } = await axios.get(
-      `/api/sessions/pagination?orgId=${orgId}&date=${previousWeekDate}`
+      `/api/sessions/pagination/week?orgId=${orgId}&date=${previousWeekDate}`
     );
+    const { events } = data;
     console.log(data);
     //añadir a activeSessions
-    data.map((session: Event) => {
+    events.map((session: Event) => {
       if (
         !activeSessions.some((activeSession) => activeSession.id === session.id)
       ) {

@@ -1,14 +1,17 @@
 import { COOKIE_NAME } from "@/constants";
-import { getSessionsByDayReq } from "@/lib/sessions/getSessionsByDayReq";
+import { getSessionsByOrgMonthReq } from "@/lib/sessions/getSessionsByOrganizationMonth";
 import { cookies } from "next/headers";
 import { NextRequest } from "next/server";
 
 export async function GET(req: NextRequest, {params}: any){
+    console.log("LLEGA AQUI")
     const cookieStore = cookies();
 
     const token = await cookieStore.get(COOKIE_NAME);
     const currentDate = req.nextUrl.searchParams.get('date');
     const orgId = req.nextUrl.searchParams.get('orgId');
+
+    console.log(orgId, currentDate, token?.value)
     
 
     if(!token){
@@ -19,7 +22,7 @@ export async function GET(req: NextRequest, {params}: any){
     }
     try{
         if(orgId && currentDate){
-            const response = await getSessionsByDayReq(token.value,parseInt(orgId), currentDate);
+            const response = await getSessionsByOrgMonthReq(token.value,parseInt(orgId), currentDate);
             return new Response(JSON.stringify(response),{
                 status: 200
             })

@@ -1,16 +1,19 @@
 import { Event } from "@/util/types/event.types";
 
-export async function getSessionsByOrgReq(
+export async function getSessionsByOrgWeekReq(
     token: string,
     orgId: number,
     currentDate: string
   ): Promise<{ events: Event[] }> {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/sessions/organization/some/${orgId}?date=${currentDate}`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/sessions/organization/week/${orgId}?date=${currentDate}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`,
       },
+      next: {
+        revalidate: 10
+      }
     });
     if (res.status === 200) {
       const events = await res.json();
