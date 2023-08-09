@@ -1,5 +1,4 @@
 "use client";
-import { convertTimeStringToDate } from "@/lib/util/convertHourIntoDate";
 import { calculateEndHour } from "@/lib/util/timeUtils";
 import { getColorHexadecimal } from "@/util/types/colors.enum";
 import { Event } from "@/util/types/event.types";
@@ -14,9 +13,10 @@ import CreateSessionModal from "./CreateSessionModal";
 
 interface WeeklyViewProps {
   events: Event[];
+  orgId: number;
 }
 
-const WeeklyView: React.FC<WeeklyViewProps> = ({ events }) => {
+const WeeklyView: React.FC<WeeklyViewProps> = ({ events, orgId }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [seeDetailsOpen, setSeeDetailsOpen] = useState(false);
   const [editSessionOpen, setEditSessionOpen] = useState(false);
@@ -55,20 +55,58 @@ const WeeklyView: React.FC<WeeklyViewProps> = ({ events }) => {
     setEditSessionOpen(false);
   };
 
-  const handleNextWeek = () => {
+  const handleNextWeek = async () => {
     const nextWeek = new Date(currentDate);
     nextWeek.setDate(currentDate.getDate() + 7);
+    const year = nextWeek.getFullYear();
+    const month = (nextWeek.getMonth() + 1).toString().padStart(2, "0");
+    const day = nextWeek.getDate().toString().padStart(2, "0");
+    const nextWeekDate = `${year}-${month}-${day}`;
+    // hacer peticion por paginacion y añadir a activeSessions
+    const { data } = await axios.get(
+      `/api/sessions/pagination?orgId=${orgId}&date=${nextWeekDate}`
+    );
+    console.log(data);
+    data.map((session: Event) => {
+      if (
+        !activeSessions.some((activeSession) => activeSession.id === session.id)
+      ) {
+        activeSessions.push(session);
+      }
+    });
+
     setCurrentDate(nextWeek);
   };
 
-  const handlePreviousWeek = () => {
+  const handlePreviousWeek = async () => {
     const previousWeek = new Date(currentDate);
     previousWeek.setDate(currentDate.getDate() - 7);
+    const year = previousWeek.getFullYear();
+    const month = (previousWeek.getMonth() + 1).toString().padStart(2, "0");
+    const day = previousWeek.getDate().toString().padStart(2, "0");
+    const previousWeekDate = `${year}-${month}-${day}`;
+    // hacer peticion por paginacion
+    const { data } = await axios.get(
+      `/api/sessions/pagination?orgId=${orgId}&date=${previousWeekDate}`
+    );
+    console.log(data);
+    //añadir a activeSessions
+    data.map((session: Event) => {
+      if (
+        !activeSessions.some((activeSession) => activeSession.id === session.id)
+      ) {
+        activeSessions.push(session);
+      }
+    });
+    console.log(activeSessions);
     setCurrentDate(previousWeek);
   };
 
   const handleTodayWeek = () => {
-    setCurrentDate(new Date());
+    const today = new Date();
+    today.setDate(today.getDate() - 1); // evitar error domingos
+
+    setCurrentDate(today);
   };
 
   const handleRemoveSession = async () => {
@@ -249,11 +287,16 @@ const WeeklyView: React.FC<WeeklyViewProps> = ({ events }) => {
                           const size = calculateSessionSize(session.duration);
                           const color = getColorHexadecimal(session.color);
                           // ESTO ES LA CARTA
+                          console.log(session.name, size);
                           return (
                             <div
                               key={session.id}
                               className={`border rounded flex flex-col justify-start w-full p-2 cursor-pointer ${
-                                size > 150 ? "space-y-5 py-5 px-4" : "space-y-2"
+                                size > 150
+                                  ? "space-y-5 py-5 px-4"
+                                  : size > 110
+                                  ? "space-y-2"
+                                  : "space-y-0"
                               }`}
                               style={{ height: size, backgroundColor: color }}
                               onClick={() => openSeeDetailsModal(session)}
@@ -272,7 +315,11 @@ const WeeklyView: React.FC<WeeklyViewProps> = ({ events }) => {
                                       <div
                                         key={teacher.id}
                                         className={`rounded-full object-contain ${
-                                          size > 150 ? "h-12 w-12" : "h-8 w-8"
+                                          size > 150
+                                            ? "h-12 w-12"
+                                            : size < 110
+                                            ? "h-6 w-6"
+                                            : "h-8 w-8"
                                         }`}
                                       >
                                         <Image
@@ -287,9 +334,11 @@ const WeeklyView: React.FC<WeeklyViewProps> = ({ events }) => {
                                     );
                                 })}
                               </div>
-                              <p className="text-sm text-white font-semibold line-clamp-2">
-                                ({hour}:{minute} - {endHour})
-                              </p>
+                              {size > 50 && (
+                                <p className="text-sm text-white font-semibold line-clamp-2">
+                                  ({hour}:{minute} - {endHour})
+                                </p>
+                              )}
                             </div>
                           );
                         })}

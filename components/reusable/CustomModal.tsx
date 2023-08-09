@@ -1,5 +1,5 @@
 import { XIcon } from "lucide-react";
-import { FC } from "react";
+import { FC, useEffect } from "react";
 
 interface CustomModalProps {
   onClose: () => void;
@@ -8,6 +8,19 @@ interface CustomModalProps {
 }
 
 const CustomModal: FC<CustomModalProps> = ({ onClose, title, children }) => {
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [onClose]);
   return (
     <div className="fixed top-0 left-0 right-0 bottom-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
       <div className="bg-white  rounded-xl shadow-lg h-[700px] w-[1000px]">

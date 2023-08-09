@@ -177,6 +177,7 @@ const EditSessionModal: FC<EditSessionModalProps> = ({
                 <option value="blue">Azul</option>
                 <option value="red">Rojo</option>
                 <option value="green">Verde</option>
+                <option value="gray">Gris</option>
               </select>
             )}
           />
